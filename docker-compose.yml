@@ -11,4 +11,5 @@ services: ## This is the services that we will have
       POSTGRES_DB: mydatabase
     ports:
       - "5432:5432" ## This is the port that will be running the goddamn file 
-  
+volumes: ## Create a managed storage area called postgres_data
+  postgres_data:
