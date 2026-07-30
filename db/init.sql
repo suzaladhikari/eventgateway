@@ -1,0 +1,1 @@
+/* This is how the data should look like or in simple terms this creates tables 
