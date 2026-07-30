@@ -1,0 +1,13 @@
+services: ## This is the services that we will have 
+  postgres: ## Postgres sql 
+    image: postgres:17 ## Creating an image for the container
+    container_name: postgres-db ## This will be our container name 
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql ## This is saying which file to run to docker and where the file is ! as soon as the file is found the docker brings it to the container 
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432" ## This is the port that will be running the goddamn file 
+    
