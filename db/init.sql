@@ -4,4 +4,15 @@ CREATE TABLE users (
     username VARCHAR(100),  -- Thi is where the user's names gets stored 
     email VARCHAR(255), -- This is where the email gets updated
     password VARCHAR(255) -- This is where the password gets updated
-)
+);
+
+
+-- Inserting into the tables 
+INSERT INTO users(username, email, password)
+values (
+    'Sujal',
+    'suadhikari4@caldwell.edu',
+    'mypassword123'
+);
+
+select * from users 
