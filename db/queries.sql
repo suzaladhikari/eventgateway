@@ -22,4 +22,18 @@ VALUES (
     NULL,
     0
 );
+
+--Test Three: Subscription cancelled, failed after retires 
+
+INSERT INTO events (event_id, event_type, payload, status, received_at, processed_at, retry_count)
+VALUES (
+    '33333333-3333-3333-3333-333333333333',
+    'subscription.cancelled',
+    '{"subscription_id": "sub_777", "customer_id": "cus_003", "reason": "payment_failed"}',
+    'failed',
+    now() - interval '30 minutes',
+    NULL,
+    3
+);
 select * from events;
+
