@@ -35,5 +35,18 @@ VALUES (
     NULL,
     3
 );
+
+-- Test Four: Another Payment being processed 
+INSERT INTO events (event_id, event_type, payload, status, received_at, processed_at, retry_count)
+VALUES (
+    '44444444-4444-4444-4444-444444444444',
+    'payment.completed',
+    '{"amount": 1500, "currency": "usd", "customer_id": "cus_004", "payment_method": "paypal"}',
+    'processing',
+    now() - interval '1 minute',
+    NULL,
+    1
+);
 select * from events;
+
 
