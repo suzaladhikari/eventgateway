@@ -1,18 +1,7 @@
 -- This is how the data should look like or in simple terms this creates tables 
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,  -- This is the primary key 
-    username VARCHAR(100),  -- Thi is where the user's names gets stored 
-    email VARCHAR(255), -- This is where the email gets updated
-    password VARCHAR(255) -- This is where the password gets updated
+
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY, 
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid()
 );
 
-
--- Inserting into the tables 
-INSERT INTO users(username, email, password)
-values (
-    'Sujal',
-    'suadhikari4@caldwell.edu',
-    'mypassword123'
-);
-
-select * from users 
