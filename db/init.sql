@@ -2,7 +2,7 @@
 
 CREATE TABLE events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(100)
+    eventype VARCHAR(100) NOT NULL
 );
 
 

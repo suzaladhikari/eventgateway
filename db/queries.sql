@@ -1,8 +1,8 @@
-INSERT INTO events(username)
+INSERT INTO events(eventype)
 values (
     'SujalAdhikariLovesJalapaPandey'
 );
-INSERT INTO events(username)
+INSERT INTO events(eventype)
 VALUES ('Conference');
 
 
