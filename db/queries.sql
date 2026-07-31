@@ -1,8 +1,9 @@
-INSERT INTO users(username, email, password)
+INSERT INTO events(username)
 values (
-    'Sujal',
-    'suadhikari4@caldwell.edu',
-    'mypassword123'
+    'SujalAdhikariLovesJalapaPandey'
 );
+INSERT INTO events(username)
+VALUES ('Conference');
 
-select * from users where username = 'Sujal';
+
+select * from events;
