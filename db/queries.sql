@@ -47,6 +47,19 @@ VALUES (
     NULL,
     1
 );
+
+--Test Five: Testing whether the unique constraint is woring or not 
+-- INSERT INTO events (event_id, event_type, payload, status, received_at, processed_at, retry_count)
+-- VALUES (
+--     '11111111-1111-1111-1111-111111111111',
+--     'payment.completed',
+--     '{"amount": 4999, "currency": "usd", "customer_id": "cus_001", "payment_method": "card"}',
+--     'completed',
+--     now(),
+--     now(),
+--     0
+-- );
+
 select * from events;
 
 
