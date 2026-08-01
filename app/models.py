@@ -12,6 +12,7 @@ class EventGateWay(Base): ## Setting up the blueprint
     status = Column(Enum('pending', 'processing', 'completed', 'failed', name = 'event_status'), nullable= False, default='pending' ) ## What is the status
     received_at = Column(DateTime(timezone=True), server_default=func.now())
     processed_at = Column(DateTime(timezone=True), nullable=True)
+    retry_count = Column(Integer, nullable=False, default=0)
 
         
 
