@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from typing import Optional
 from sqlalchemy import Column, Integer, String,Enum, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from enum import Enum
@@ -19,3 +20,4 @@ class DatabaseRequest(BaseModel):
     payload: dict 
     status: EventStatus = EventStatus.PENDING
     received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    process_at: Optional[datetime]
