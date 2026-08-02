@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 import uuid
 Base = declarative_base()
 class Event(Base): ## Setting up the blueprint 
-    __tablename__ = 'events' ## The table name that stores the value is called events 
+    __tablename__ = 'events' ## The table name that stores the value is called events and is in the same name in which the table in sql was initialized
     event_id = Column(UUID(as_uuid=True),default=uuid.uuid4, primary_key=True) ## This is the unique eventId
     event_type = Column(String, nullable=False) # What type of event is it ?!
     payload = Column(JSONB, nullable=False) ## Accepts the json format 
