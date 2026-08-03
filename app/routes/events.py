@@ -11,7 +11,7 @@ router = APIRouter()
 def create_events(request: DatabaseRequest):
 ## Db creates a seesion that makes sure that the connection is made to the database once the request is made
     event_data = {
-        "event_id": request.event_id,
+        "event_id": str(request.event_id), ## This is also a string
         "event_type": request.event_type,
         "payload": request.payload
     }
