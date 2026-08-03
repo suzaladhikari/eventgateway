@@ -9,6 +9,7 @@ router = APIRouter()
 
 @router.post('/events', status_code=202) ## Event received and processing started
 def create_events(request: DatabaseRequest, db: Session = Depends(get_db)):
+## Db creates a seesion that makes sure that the connection is made to the database once the request is made
     new_event = Event(
         event_id = request.event_id,
         event_type = request.event_type,
