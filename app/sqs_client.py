@@ -1,4 +1,5 @@
 import boto3 
+print(boto3.__version__)
 import json 
 import os 
 
