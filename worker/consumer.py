@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 import json 
 load_dotenv()
 sqs = boto3.client("sqs", region_name = os.getenv('AWS_REGION'))
-response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"))
-dlq = sqs.receive_message(QueueUrl = os.getenv("DLQ_URL"))
+response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), MaxNumberOfMessages = 1, WaitTimeSeconds = 10)
+for message in response.get('Messages', []):
+    try: 
+        event = json.loads(message['Body'])
+        
 
