@@ -13,14 +13,18 @@ import json
 from app.models import Event
 from app.database import SessionLocal
 load_dotenv()
-
+from app.models import Base 
+from app.database import engine
+print("Creating Engine")
+Base.metadata.create_all(bind = engine)
+print("Engine Created!")
 ## Creating a database session 
 db = SessionLocal()
 ## Engine to connect sessions to the database
 
 sqs = boto3.client("sqs", region_name = os.getenv('AWS_REGION'))
 response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), MaxNumberOfMessages = 1, WaitTimeSeconds = 10)
-print(response)
+
 for message in response.get('Messages', []):
     try: 
         events = json.loads(message['Body'])
