@@ -13,8 +13,11 @@ import json
 from app.models import Event
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 load_dotenv()
+
+## Engine to connect sessions to the database
+engine = create_engine(os.getenv("RDS_DATABASE"))
+SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine)
 sqs = boto3.client("sqs", region_name = os.getenv('AWS_REGION'))
 response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), MaxNumberOfMessages = 1, WaitTimeSeconds = 10)
 for message in response.get('Messages', []):
