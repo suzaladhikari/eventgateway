@@ -20,6 +20,7 @@ db = SessionLocal()
 
 sqs = boto3.client("sqs", region_name = os.getenv('AWS_REGION'))
 response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), MaxNumberOfMessages = 1, WaitTimeSeconds = 10)
+print(response)
 for message in response.get('Messages', []):
     try: 
         events = json.loads(message['Body'])
