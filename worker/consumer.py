@@ -26,6 +26,10 @@ for message in response.get('Messages', []):
         new_event = Event(event_id = events['event_id'], event_type = events['event_type'], payload = events['payload']) ## This is how the table should be formatted 
         db.add(new_event)
         db.commit()
+        sqs.delete_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), ReceiptHandle = message["ReceiptHandle"])
+        print("Deleted from SQS")
+    finally: 
         
+         
         
 
