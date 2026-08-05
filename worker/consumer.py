@@ -28,8 +28,11 @@ for message in response.get('Messages', []):
         db.commit()
         sqs.delete_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), ReceiptHandle = message["ReceiptHandle"])
         print("Deleted from SQS")
+    except Exception as e:
+        db.rollback()
+        print("Error", e)
     finally: 
-        
+        db.close()
          
         
 
