@@ -11,6 +11,7 @@ sys.path.append(
 from dotenv import load_dotenv
 import json 
 from json import JSONDecodeError
+from sqlalchemy.exc import IntegrityError
 from app.models import Event,Base
 from app.database import SessionLocal, engine
 load_dotenv()
@@ -36,6 +37,10 @@ def poll_and_process():
             except JSONDecodeError as e:
                 db.rollback()
                 print("Bad message formatting,", e)
+            except IntegrityError as e: 
+                db.rollback()
+                print("Duplicate event_id", e)
+            
     finally: 
         db.close()
 
