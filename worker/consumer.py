@@ -10,6 +10,7 @@ sys.path.append(
 )
 from dotenv import load_dotenv
 import json 
+from json import JSONDecodeError
 from app.models import Event,Base
 from app.database import SessionLocal, engine
 load_dotenv()
@@ -32,9 +33,9 @@ def poll_and_process():
                 db.commit()
                 sqs.delete_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), ReceiptHandle = message["ReceiptHandle"])
                 print("Deleted from SQS")
-            except Exception as e:
+            except JSONDecodeError as e:
                 db.rollback()
-                print("Error", e)
+                print("Bad message formatting,", e)
     finally: 
         db.close()
 
