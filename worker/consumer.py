@@ -25,10 +25,12 @@ sqs = boto3.client("sqs", region_name = os.getenv('AWS_REGION'))
 def poll_and_process():
     db = SessionLocal()
     try:
-        response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), MaxNumberOfMessages = 10, WaitTimeSeconds = 30)
+        response = sqs.receive_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), MaxNumberOfMessages = 10, WaitTimeSeconds = 30, AttributeNames = ['ApproximateReceiveCount'])
         for message in response.get('Messages', []):
             try: 
                 events = json.loads(message['Body'])
+                receive_count = int(message['Attributes']['ApproximateReceiveCount'])
+                print(receive_count)
                 new_event = Event(event_id = events['event_id'], event_type = events['event_type'], payload = events['payload']) ## This is how the table should be formatted 
                 db.add(new_event)
                 db.commit()
