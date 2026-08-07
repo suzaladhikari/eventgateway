@@ -50,6 +50,7 @@ def poll_and_process():
                     db.query(Event).filter_by(event_id).update(update_values)
                     db.commit() ## Updating the retry count everytime it fails 
                 except Exception as inner_e:
+                    db.rollback()
                     print("Failed to upate the retry count:", inner_e)
                 print("Duplicate event_id", e)
             except Exception as e: 
