@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import json 
 from json import JSONDecodeError
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import func
 from app.models import Event,Base
 from app.database import SessionLocal, engine
 load_dotenv()
@@ -31,7 +32,7 @@ def poll_and_process():
                 events = json.loads(message['Body'])
                 receive_count = int(message['Attributes']['ApproximateReceiveCount'])
                 print(receive_count)
-                new_event = Event(event_id = events['event_id'], event_type = events['event_type'], payload = events['payload'], retry_count = receive_count-1) ## This is how the table should be formatted 
+                new_event = Event(event_id = events['event_id'], event_type = events['event_type'], payload = events['payload'], retry_count = receive_count-1, status = 'completed', processed_at= func.now()) ## This is how the table should be formatted 
                 db.add(new_event)
                 db.commit()
                 sqs.delete_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), ReceiptHandle = message["ReceiptHandle"])
