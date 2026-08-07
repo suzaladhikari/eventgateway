@@ -44,7 +44,10 @@ def poll_and_process():
                 db.rollback()
                 try: 
                     event_id  = json.loads(message['Body'])['event_id'] ## Accessing the event_id 
-                    db.query(Event).filter_by(event_id = event_id).update({'retry_count':receive_count})
+                    update_values = {'retry_count': receive_count}
+                    if receive_count >= 5: 
+                        update_values['status'] = 'failed'
+                    db.query(Event).filter_by(event_id).update(update_values)
                     db.commit() ## Updating the retry count everytime it fails 
                 except Exception as inner_e:
                     print("Failed to upate the retry count:", inner_e)
