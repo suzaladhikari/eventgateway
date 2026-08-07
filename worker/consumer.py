@@ -31,7 +31,7 @@ def poll_and_process():
                 events = json.loads(message['Body'])
                 receive_count = int(message['Attributes']['ApproximateReceiveCount'])
                 print(receive_count)
-                new_event = Event(event_id = events['event_id'], event_type = events['event_type'], payload = events['payload']) ## This is how the table should be formatted 
+                new_event = Event(event_id = events['event_id'], event_type = events['event_type'], payload = events['payload'], retry_count = receive_count-1) ## This is how the table should be formatted 
                 db.add(new_event)
                 db.commit()
                 sqs.delete_message(QueueUrl = os.getenv("SQS_QUEUE_URL"), ReceiptHandle = message["ReceiptHandle"])
@@ -41,6 +41,12 @@ def poll_and_process():
                 print("Bad message formatting,", e)
             except IntegrityError as e: 
                 db.rollback()
+                try: 
+                    event_id  = json.loads(message['Body'])['event_id'] ## Accessing the event_id 
+                    db.query(Event).filter_by(event_id = event_id).update({'retry_count':receive_count})
+                    db.commit() ## Updating the retry count everytime it fails 
+                except Exception as inner_e:
+                    print("Failed to upate the retry count:", inner_e)
                 print("Duplicate event_id", e)
             except Exception as e: 
                 db.rollback()
