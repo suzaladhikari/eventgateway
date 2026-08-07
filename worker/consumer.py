@@ -40,6 +40,10 @@ def poll_and_process():
             except IntegrityError as e: 
                 db.rollback()
                 print("Duplicate event_id", e)
+            except Exception as e: 
+                db.rollback()
+                print("Error found", e)
+            
             
     finally: 
         db.close()
