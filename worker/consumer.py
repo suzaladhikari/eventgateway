@@ -41,5 +41,8 @@ def poll_and_process():
 if __name__ == '__main__':
     while True: 
         poll_and_process()
+
+
+### Adding the DLQ is left and also updating the status and also process_at and everything is yet to be done !
         
 
