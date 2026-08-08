@@ -1,9 +1,14 @@
 ## This will be used for the worker file 
 FROM python:3.11-slim 
 
-WORKDIR /worker
+WORKDIR /workersqs
 
 COPY requirements.txt requirements.txt
 
 RUN pip install --no-cache-dir -r requirements.txt 
 
+COPY app ./app
+
+COPY worker ./worker
+
+CMD ["python", "worker/consumer.py"]
