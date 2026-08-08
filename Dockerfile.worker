@@ -1,0 +1,4 @@
+## This will be used for the worker file 
+FROM python:3.11-slim 
+
+WORKDIR /worker
