@@ -1,1 +1,3 @@
 set -e 
+REGION=us-east-1
+ACCOUNT_ID=871640285396
