@@ -7,3 +7,6 @@ aws ecr get-login-password --region $REGION docker login --username AWS --passwo
 docker build -f Dockerfile.fastapi -t eventgateway-producer . ## Building the docker image from the dockerfile
 docker tag eventgateway-producer:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-producer:latest ## Naming the image
 docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-producer:latest
+
+docker build -f Dockerfile.worker -t eventgateway-worker . 
+docker tag eventgateway-worker:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-worker:latest
