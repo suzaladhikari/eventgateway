@@ -10,3 +10,6 @@ docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-producer:late
 
 docker build -f Dockerfile.worker -t eventgateway-worker . 
 docker tag eventgateway-worker:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-worker:latest
+docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-worker:latest 
+
+echo "Both images pushed successfully"
