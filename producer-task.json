@@ -1,9 +1,11 @@
+
 {
     "family": "eventgateway-producer", 
     "networkMode": "awsvpc",
     "requiresCompatibilities": ["FARGATE"],
     "cpu": "256",
     "memory": "512",
-
+    "executionRoleArn": "arn:aws:iam::871640285396:user/event-gateway-dev",
+    "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/eventgateway-task-role"
 
 }
