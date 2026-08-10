@@ -13,6 +13,9 @@
             "image": "871640285396.dkr.ecr.us-east-1.amazonaws.com/eventgateway-producer",
             "portMappings": [
                 {"containerPort": 8000, "protocol": "tcp"}
+            ],
+            "environment": [
+                {"name": "SQS_QUEUE_URL", "value":"https://sqs.us-east-1.amazonaws.com/871640285396/event-gateway-queue"}
             ]
         }
     ]
