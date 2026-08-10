@@ -10,7 +10,10 @@
     "containerDefinations": [
         {
             "name": "producer",
-            "image": "871640285396.dkr.ecr.us-east-1.amazonaws.com/eventgateway-producer"
+            "image": "871640285396.dkr.ecr.us-east-1.amazonaws.com/eventgateway-producer",
+            "portMappings": [
+                {"containerPort": 8000, "protocol": "tcp"}
+            ]
         }
     ]
 }
