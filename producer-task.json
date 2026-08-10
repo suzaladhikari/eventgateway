@@ -1,0 +1,5 @@
+{
+    "family": "eventgateway-producer", 
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"]
+}
