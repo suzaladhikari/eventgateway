@@ -1,5 +1,9 @@
 {
     "family": "eventgateway-producer", 
     "networkMode": "awsvpc",
-    "requiresCompatibilities": ["FARGATE"]
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "256",
+    "memory": "512",
+
+
 }
