@@ -7,16 +7,16 @@
     "memory": "512",
     "executionRoleArn": "arn:aws:iam::871640285396:role/eventgateway-execution-role",
     "taskRoleArn": "arn:aws:iam::871640285396:role/eventgateway-task-role",
-    "containerDefinations": [
+    "containerDefinitions": [
         {
             "name": "producer",
-            "image": "871640285396.dkr.ecr.us-east-1.amazonaws.com/eventgateway-producer",
+            "image": "871640285396.dkr.ecr.us-east-1.amazonaws.com/eventgateway-producer:latest",
             "portMappings": [
                 {"containerPort": 8000, "protocol": "tcp"}
             ],
             "environment": [
                 {"name": "SQS_QUEUE_URL", "value":"https://sqs.us-east-1.amazonaws.com/871640285396/event-gateway-queue"},
-                {"name": "DATABASE_URL", "value":"postgresql://sujaladhikari:Test12345@database-1.cwv68ociang2.us-east-1.rds.amazonaws.com:5432/<database_name>"}
+                {"name": "DATABASE_URL", "value":"postgresql://sujaladhikari:Test12345@database-1.cwv68ociang2.us-east-1.rds.amazonaws.com:5432/database-1"}
             ],
             "logConfiguration": {
                 "logDriver": "awslogs",
