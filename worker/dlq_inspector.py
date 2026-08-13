@@ -13,3 +13,4 @@ while True:
     for message in messages:
         body = json.loads(message['Body'])
         print(body.get('event_id'))
+        
