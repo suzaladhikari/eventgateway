@@ -8,7 +8,7 @@ docker build --platform linux/amd64 -t eventgateway-producer ./producer ## Build
 docker tag eventgateway-producer:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-producer:latest ## Naming the image
 docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-producer:latest
 
-docker build --platform linux/amd64 -t eventgateway-consumer ./consumer
+docker build --platform linux/amd64 -t eventgateway-worker ./consumer
 docker tag eventgateway-worker:latest $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-worker:latest
 docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/eventgateway-worker:latest 
 
