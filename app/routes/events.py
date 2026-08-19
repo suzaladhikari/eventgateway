@@ -1,9 +1,6 @@
 ### Here users will post the request
-from fastapi import APIRouter, Depends
-from app.models import Event 
+from fastapi import APIRouter
 from app.schemas import DatabaseRequest
-from sqlalchemy.orm import Session
-from app.db import get_db
 from app.sqs_client import send_event_to_queue
 router = APIRouter()
 
