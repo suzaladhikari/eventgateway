@@ -16,3 +16,10 @@ This pattern means the producer stays fast and available even if the worker is d
 ---
 
 ## Architecture
+
+```mermaid
+flowchart TD
+    A[Client] --> B[FastAPI Producer<br/>ECS Fargate]
+    B -->|Validates payload<br/>Enqueues event| C[Amazon SQS]
+    C -->|Durable buffer<br/>Decouples producer/consumer| D[Worker / Consumer<br/>ECS Fargate]
+    D -->|Polls queue<br/>Processes message| E[RDS PostgreSQL]
