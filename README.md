@@ -238,4 +238,30 @@ eventgateway/
 ├── requirements.txt
 ├── .env.example
 └── README.md
+
+
+---
+
+## Project Goals
+
+- Demonstrate a production-style decoupled architecture, not just a request/response CRUD app
+- Apply least-privilege IAM design across separate services rather than a single monolithic role
+- Practice real cloud debugging — diagnosing failures from CloudWatch logs across import, configuration, and database layers
+- Deploy a complete containerized pipeline on AWS ECS Fargate, from ECR build to live SQS/RDS verification
+
+---
+
+## Future Improvements
+
+- Move `DATABASE_URL` and other secrets to AWS Secrets Manager instead of plaintext task definition environment variables
+- Add an Application Load Balancer for a stable DNS endpoint instead of relying on ephemeral task public IPs
+- Add automated tests and a CI/CD pipeline for image builds and deployments
+- Add a DLQ alerting/reprocessing workflow for failed messages
+
+---
+
+## Contact
+
+**Sujal Adhikari**
+[Email](mailto:sujaladhikarids@gmail.com) · [LinkedIn](https://www.linkedin.com/in/sujaladhikari3/) · [GitHub](https://github.com/suzaladhikari)
 ```
