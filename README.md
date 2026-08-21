@@ -21,49 +21,87 @@ This pattern means the producer stays fast and available even if the worker is d
 flowchart TD
     A[Client] --> B[FastAPI Producer<br/>ECS Fargate]
     B -->|Validates payload<br/>Enqueues event| C[Amazon SQS]
-    C -->|Durable buffer<br/>Decouples producer/consumer| D[Worker / Consumer<br/>ECS Fargate]
+    C -->|Durable buffer<br/>Decouples producer and consumer| D[Worker / Consumer<br/>ECS Fargate]
     D -->|Polls queue<br/>Processes message| E[RDS PostgreSQL]
+```
 
+### Request Flow
 
-
-1. Client sends a request to the FastAPI producer
-2. Producer validates the payload against a Pydantic schema and pushes it to SQS via `boto3`, returning immediately (no waiting on downstream processing)
-3. SQS holds the message durably until it's consumed
-4. An independent worker service polls SQS, retrieves messages, and processes them
-5. The worker writes the final record to RDS PostgreSQL via SQLAlchemy
+1. **Client sends a request** to the FastAPI producer.
+2. **Producer validates the payload** against a Pydantic schema and sends the event to Amazon SQS using `boto3`. The producer returns immediately without waiting for downstream processing.
+3. **SQS acts as a durable buffer**, retaining messages until they are successfully consumed or reach their configured retention period.
+4. **Worker/Consumer independently polls SQS**, retrieves messages, processes them, and acknowledges successful processing by deleting them from the queue.
+5. **Worker persists the final record** to RDS PostgreSQL using SQLAlchemy.
 
 ---
 
 ## Key Design Decisions
 
-- **Decoupled producer/consumer via SQS** — the two services never communicate directly. If the worker crashes or is scaling, the producer keeps accepting requests without failing.
-- **Least-privilege IAM per service** — the producer's task role only grants `sqs:SendMessage`; it has zero permissions or network path to RDS. The worker's task role grants SQS read/delete plus DB access. Two task definitions, two separate blast radii.
-- **Async response pattern** — the producer returns as soon as the event is queued, not after it's fully processed, keeping request latency low regardless of downstream load.
-- **Environment-based configuration** — the same codebase reads `DATABASE_URL` from the process environment locally (via `.env` + `python-dotenv`) and from ECS task definition variables in production, with no code branching required.
+- **Decoupled producer/consumer via SQS** — The producer and worker never communicate directly. If the worker crashes, restarts, or is temporarily overloaded, the producer can continue accepting requests while messages remain queued in SQS.
+
+- **Least-privilege IAM per service** — The producer's ECS task role is limited to the SQS permissions it needs, such as `sqs:SendMessage`. It has no database permissions. The worker's task role is granted the permissions required to consume and delete SQS messages and access the database. Separate task definitions and IAM roles limit the blast radius of a compromised service.
+
+- **Asynchronous response pattern** — The producer responds as soon as the event has been successfully queued rather than waiting for the worker to process it. This keeps request latency independent of downstream processing time.
+
+- **Environment-based configuration** — The application reads configuration from environment variables. Locally, variables can be loaded from `.env` using `python-dotenv`; in ECS, the same variables are supplied through the task definition. No application code branching is required between local and production environments.
 
 ---
 
 ## Tech Stack
 
 - **Backend:** FastAPI, Pydantic
-- **Messaging:** Amazon SQS (+ DLQ)
+- **Messaging:** Amazon SQS, Dead-Letter Queue (DLQ)
 - **Database:** PostgreSQL (Amazon RDS), SQLAlchemy
-- **Infrastructure:** Docker, Amazon ECS (Fargate), Amazon ECR, IAM
+- **Infrastructure:** Docker, Amazon ECS Fargate, Amazon ECR, IAM
 - **Observability:** Amazon CloudWatch Logs
 
 ---
 
 ## Challenges & Debugging
 
-Deploying this to ECS surfaced three distinct failures across three different layers — each diagnosed from CloudWatch tracebacks rather than guesswork:
+Deploying the system to ECS surfaced three distinct failures across different layers. Each issue was diagnosed using CloudWatch logs and container tracebacks rather than trial and error.
 
-1. **Import-time crash in the producer.** A schema file had an unused import that transitively pulled in the database module, which called `create_engine()` at module load time with no `DATABASE_URL` set (correctly, since the producer shouldn't have DB access). Since Python imports execute eagerly, the app crashed before `uvicorn` could even start. Fixed by removing the dead import.
+### 1. Import-time crash in the producer
 
-2. **Environment variable mismatch in the worker.** The worker's code read `os.getenv("RDS_DATABASE")`, but the ECS task definition only provided `DATABASE_URL`. Same class of bug, different variable name — the container had no config source for what the code expected. Fixed by aligning the code to the deployed environment's variable name.
+A schema module contained an unused import that transitively imported the database module. The database module called `create_engine()` during module initialization, but the producer correctly had no `DATABASE_URL` because it does not access the database.
 
-3. **RDS authentication and SSL rejection.** After fixing the variable name, the worker still failed to connect — wrong master username baked into the connection string, and RDS rejecting unencrypted connections. Resolved by resetting the RDS master password, correcting the username, and appending `sslmode=require` to the connection string.
+Because Python executes module-level code during imports, the application crashed before `uvicorn` could start.
 
-Each fix was verified in the live ECS environment: rebuilding and pushing new images to ECR, forcing service redeployments, and confirming end-to-end via CloudWatch logs and an actual SQS message count drop (queue depth going from 2 → 0 after the worker successfully processed and persisted both messages).
+**Fix:** Removed the unused database-related import from the schema module.
+
+### 2. Environment variable mismatch in the worker
+
+The worker code expected:
+
+```python
+os.getenv("RDS_DATABASE")
+```
+
+while the ECS task definition provided:
+
+```text
+DATABASE_URL
+```
+
+As a result, the worker received no database connection string.
+
+**Fix:** Aligned the worker's configuration with the environment variable supplied by the ECS task definition.
+
+### 3. RDS authentication and SSL rejection
+
+After fixing the environment variable, the worker still could not connect to RDS. The connection string contained an incorrect master username, and the RDS instance required an encrypted connection.
+
+**Fix:** Reset the RDS master password, corrected the database username, and added:
+
+```text
+sslmode=require
+```
+
+to the PostgreSQL connection string.
+
+Each fix was verified in the live ECS environment by rebuilding and pushing the updated Docker image to ECR, forcing a new ECS deployment, and checking CloudWatch logs.
+
+The final end-to-end test confirmed that the worker successfully consumed and persisted the queued messages. The SQS queue depth dropped from **2 → 0**, confirming that both messages were processed successfully.
 
 ---
 
@@ -72,40 +110,42 @@ Each fix was verified in the live ECS environment: rebuilding and pushing new im
 - [Python 3.11+](https://www.python.org/downloads/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - [Git](https://git-scm.com/)
-- An AWS account with SQS, RDS, and ECR access (for full cloud deployment)
+- An AWS account with access to SQS, RDS, ECR, ECS, and IAM for cloud deployment
 
 ---
 
-## Running with Docker (Recommended)
+## Running with Docker
 
-**1. Clone the repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/suzaladhikari/eventgateway.git
 cd eventgateway
 ```
 
-**2. Configure environment variables**
+### 2. Configure environment variables
 
-Copy `.env.example` to `.env` and fill in your local values:
+Copy `.env.example` to `.env` and fill in the required values:
 
 ```bash
 cp .env.example .env
 ```
 
-**3. Build and start the containers**
+> **Note:** Do not commit `.env` or any file containing real credentials to Git.
+
+### 3. Build and start the containers
 
 ```bash
 docker compose up --build
 ```
 
-**4. Access the application**
+### 4. Access the application
 
-| Service         | URL                          |
-|-----------------|-------------------------------|
-| FastAPI Docs    | http://localhost:8000/docs    |
+| Service | URL |
+|---|---|
+| FastAPI Docs | http://localhost:8000/docs |
 
-**5. Stop all containers**
+### 5. Stop the containers
 
 ```bash
 docker compose down
@@ -113,28 +153,30 @@ docker compose down
 
 ---
 
-## Running Locally (Without Docker)
+## Running Locally Without Docker
 
-**1. Clone the repository**
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/suzaladhikari/eventgateway.git
 cd eventgateway
 ```
 
-**2. Install dependencies**
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-**3. Start the FastAPI producer**
+### 3. Start the FastAPI producer
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-**4. Start the worker** (in a new terminal)
+### 4. Start the worker
+
+Open a second terminal and run:
 
 ```bash
 python worker/consumer.py
@@ -144,14 +186,30 @@ python worker/consumer.py
 
 ## AWS Deployment
 
-The producer and worker are deployed as separate Amazon ECS Fargate services, each with its own task definition, IAM task role, and security group:
+The producer and worker run as separate ECS Fargate services. Each service has its own task definition and IAM task role, with network access restricted according to its responsibilities.
 
-| Component       | ECR Repo                  | ECS Service     |
-|------------------|----------------------------|------------------|
-| Producer         | `eventgateway-producer`    | `producer-svc`   |
-| Worker           | `eventgateway-worker`      | `consumer-svc`   |
+| Component | ECR Repository | ECS Service |
+|---|---|---|
+| Producer | `eventgateway-producer` | `producer-svc` |
+| Worker | `eventgateway-worker` | `consumer-svc` |
 
-Deploying a code change requires rebuilding and pushing the Docker image to ECR, then forcing a new ECS deployment so the running service picks up the updated image:
+### Deployment Flow
+
+```text
+Code Change
+    ↓
+Docker Build
+    ↓
+Push Image to ECR
+    ↓
+Force ECS Deployment
+    ↓
+ECS starts new task
+    ↓
+CloudWatch Logs
+```
+
+After pushing a new image to ECR, force the corresponding ECS service to deploy the updated image:
 
 ```bash
 aws ecs update-service \
@@ -163,3 +221,21 @@ aws ecs update-service \
 ---
 
 ## Project Structure
+
+```text
+eventgateway/
+│
+├── app/
+│   ├── main.py
+│   └── schemas.py
+│
+├── worker/
+│   └── consumer.py
+│
+├── Dockerfile.fastapi
+├── Dockerfile.worker
+├── docker-compose.yml
+├── requirements.txt
+├── .env.example
+└── README.md
+```
